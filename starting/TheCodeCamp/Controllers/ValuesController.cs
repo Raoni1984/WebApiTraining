@@ -11,9 +11,9 @@ namespace TheCodeCamp.Controllers
 {
   public class ValuesController : ApiController
   {
-    public string[] Get()
+    public IHttpActionResult Get()
     {
-      return new[] { "Hello", "From", "Pluralsight" };
+      return Ok(new[] { "Hello", "From", "Pluralsight" });
     }
 
   }
