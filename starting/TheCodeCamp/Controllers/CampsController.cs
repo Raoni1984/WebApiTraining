@@ -15,6 +15,7 @@ using TheCodeCamp.Models;
 
 namespace TheCodeCamp.Controllers
 {
+    [RoutePrefix("api/camps")]
     public class CampsController : ApiController
     {
         private CampContext db = new CampContext();
@@ -29,11 +30,12 @@ namespace TheCodeCamp.Controllers
         }
 
         // GET: api/Camps
-        public async Task<IHttpActionResult> GetCamps()
+        [Route("")]
+        public async Task<IHttpActionResult> GetCamps(bool includeTalks = false)
         {
             try
             {
-                var result = await _repository.GetAllCampsAsync();
+                var result = await _repository.GetAllCampsAsync(includeTalks);
 
                 //Mapping
                 var mappedResult = _mapper.Map<IEnumerable<CampModel>>(result);
@@ -46,17 +48,54 @@ namespace TheCodeCamp.Controllers
             }
         }
 
-        // GET: api/Camps/5
-        [ResponseType(typeof(Camp))]
-        public IHttpActionResult GetCamp(int id)
-        {
-            Camp camp = db.Camps.Find(id);
-            if (camp == null)
-            {
-                return NotFound();
-            }
+        //// GET: api/Camps/5
+        //[ResponseType(typeof(Camp))]
+        //[Route("{id}")]
+        //public IHttpActionResult GetCamp(int id)
+        //{
+        //    Camp camp = db.Camps.Find(id);
+        //    if (camp == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            return Ok(camp);
+        //    return Ok(camp);
+        //}
+
+        //GET: api/Camps/{moniker}
+        [Route("{moniker}")]
+        public async Task<IHttpActionResult> GetCampByMoniker(string moniker, bool includeTalks = false)
+        {
+            try
+            {
+                var result = await _repository.GetCampAsync(moniker, includeTalks);
+
+                if(result == null) return NotFound();
+
+                return Ok(_mapper.Map<CampModel>(result));
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
+
+        //Search by EventDate
+        [Route("searchByDate/{eventDate:datetime}")]
+        [HttpGet]
+        public async Task<IHttpActionResult> SearchByEventDate(DateTime eventDate, bool includeTalks = false)
+        {
+            try
+            {
+                var result = _repository.GetAllCampsByEventDate(eventDate, includeTalks);
+
+                return Ok(_mapper.Map<CampModel[]>(result));
+            }
+            catch (Exception ex)
+            {
+
+                return InternalServerError(ex);
+            }
         }
 
         // PUT: api/Camps/5
