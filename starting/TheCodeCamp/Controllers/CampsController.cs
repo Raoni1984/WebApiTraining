@@ -63,7 +63,7 @@ namespace TheCodeCamp.Controllers
         //}
 
         //GET: api/Camps/{moniker}
-        [Route("{moniker}")]
+        [Route("{moniker}", Name = "GetCamp")]
         public async Task<IHttpActionResult> GetCampByMoniker(string moniker, bool includeTalks = false)
         {
             try
@@ -134,18 +134,40 @@ namespace TheCodeCamp.Controllers
         }
 
         // POST: api/Camps
-        [ResponseType(typeof(Camp))]
-        public IHttpActionResult PostCamp(Camp camp)
+        [Route()]
+        public async Task<IHttpActionResult> PostCamp(CampModel campModel)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (ModelState.IsValid)
+                {
+                    var camp = _mapper.Map<Camp>(campModel);
+                    _repository.AddCamp(camp);
+                   
+
+                    if (await _repository.SaveChangesAsync())
+                    {
+                        var newModel = _mapper.Map<CampModel>(camp);
+
+                        //var location = $"/api/camps/{newModel.Moniker}";
+                        //var location = Url.Link("GetCamp", new { moniker = newModel.Moniker });
+
+                        return CreatedAtRoute("GetCamp", new { moniker = newModel.Moniker }, newModel);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
             }
 
-            db.Camps.Add(camp);
-            db.SaveChanges();
+            return BadRequest();
 
-            return CreatedAtRoute("DefaultApi", new { id = camp.CampId }, camp);
+            //db.Camps.Add(camp);
+            //db.SaveChanges();
+
+            //return CreatedAtRoute("DefaultApi", new { id = camp.CampId }, camp);
         }
 
         // DELETE: api/Camps/5
